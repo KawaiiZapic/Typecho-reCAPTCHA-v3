@@ -6,7 +6,7 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
  *
  * @package GrCv3Protect
  * @author Zapic
- * @version 0.0.1
+ * @version 0.0.2
  * @link https://github.com/KawaiiZapic/Typecho-Login-reCAPTCHA-v3
  */
 
