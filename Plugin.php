@@ -30,13 +30,14 @@ class GrCv3Protect_Plugin implements Typecho_Plugin_Interface {
     public static function config(Typecho_Widget_Helper_Form $form) {
         $key = new Typecho_Widget_Helper_Form_Element_Text('key', NULL, '', 'Site Key');
         $secret = new Typecho_Widget_Helper_Form_Element_Text('secret', NULL, '', 'Secret Key');
-        $Protect = new Typecho_Widget_Helper_Form_Element_Checkbox('Protect', ['login' => "登录",'comment' => "评论"], "login", '对以下行为启用reCAPTCHA验证');
+        $Score = new Typecho_Widget_Helper_Form_Element_Checkbox('Protect', ['login' => "登录",'comment' => "评论"], "login", '对以下行为启用reCAPTCHA验证');
         $Protect = new Typecho_Widget_Helper_Form_Element_Text('score', NULL, '0.5', 'reCAPTCHA 验证分数阈值');
         $jsMirror = new Typecho_Widget_Helper_Form_Element_Radio('jsMirror', ['1' => "recaptcha.net(国内可用)", '0' => "Google.com"], '1', 'reCAPTCHA 资源加载地址');
         $serverMirror = new Typecho_Widget_Helper_Form_Element_Radio('serverMirror', ['1' => "recaptcha.net(国内可用)", '0' => "Google.com"], '1', 'reCAPTCHA 验证地址');
         echo '<b>在<a href="https://www.google.com/recaptcha/admin">Google reCAPTCHA</a> 添加站点以获取 Site Key & Secret key</b><br><br>若启用评论验证,请在主题评论表单内添加相应代码:<pre>&lt;?php '.__CLASS__.'::OutputCode(); ?></pre>';
         $form->addInput($key);
         $form->addInput($secret);
+        $form->addInput($Score);
         $form->addInput($Protect);
         $form->addInput($jsMirror);
         $form->addInput($serverMirror);
