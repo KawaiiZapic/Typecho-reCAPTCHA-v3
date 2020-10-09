@@ -7,7 +7,7 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
  * @package GrCv3Protect
  * @author Zapic
  * @version 0.0.2
- * @link https://github.com/KawaiiZapic/Typecho-Login-reCAPTCHA-v3
+ * @link https://github.com/KawaiiZapic/Typecho-reCAPTCHA-v3
  */
 
 class GrCv3Protect_Plugin implements Typecho_Plugin_Interface {
@@ -117,7 +117,7 @@ class GrCv3Protect_Plugin implements Typecho_Plugin_Interface {
             $url = self::$mirror[$config->serverMirror == 1 ? "recaptcha" : "google"];
             $score = floatval($config->score);
             if (empty($res) || empty($res['g-recaptcha-response']) || self::Verify($url, $config->secret, $res['g-recaptcha-response'], $score) !== true) {
-                $user->widget('Widget_Notice')->set(_t('无法验证 reCAPTCHA,请重试.'), 'error');
+                $user->widget('Widget_Notice')->set('无法验证 reCAPTCHA,请重试.', 'error');
                 $user->response->goBack();
             }
         }
@@ -131,7 +131,7 @@ class GrCv3Protect_Plugin implements Typecho_Plugin_Interface {
             return $comments;
         }
         $config = Helper::options()->plugin('GrCv3Protect');
-        if(!in_array("comment",$config->Protect) || empty($config->siteKey) || empty($config->secretKey)){
+        if(!in_array("comment",$config->Protect) || empty($config->key) || empty($config->secret)){
             return $comments;
         }
         $url = self::$mirror[$config->serverMirror == 1 ? "recaptcha" : "google"];
@@ -140,7 +140,7 @@ class GrCv3Protect_Plugin implements Typecho_Plugin_Interface {
         if (!empty($res) && !empty($res['g-recaptcha-response']) && self::Verify($url,$config->secret,$res['g-recaptcha-response'], $score)) {
             return $comments;
         } else {
-            throw new Typecho_Widget_Exception(_t('无法验证 reCAPTCHA,请尝试刷新页面.'));
+            throw new Typecho_Widget_Exception('无法验证 reCAPTCHA,请尝试刷新页面.');
         }
     }
     public static function Verify($url, $secret, $res,$score = 0.5) {
