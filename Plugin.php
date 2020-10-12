@@ -6,8 +6,8 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
  *
  * @package GrCv3Protect
  * @author Zapic
- * @version 0.0.3
- * @link https://github.com/KawaiiZapic/Typecho-reCAPTCHA-v3
+ * @version 0.0.4
+ * @link https://github.com/KawaiiZapic/Typecho-Login-reCAPTCHA-v3
  */
 
 class GrCv3Protect_Plugin implements Typecho_Plugin_Interface {
@@ -55,16 +55,17 @@ class GrCv3Protect_Plugin implements Typecho_Plugin_Interface {
         }
         $url = Typecho_Common::url("recaptcha/api.js",self::$mirror[$config->jsMirror == 1 ? "recaptcha" : "google"]);
         $key = $config->key;
-        echo '<script src="' . $url . '"></script>
-        <script>
-            const GrCKey = "' . $key . '" ;
-            function onSubmit() {
-                document.querySelector("form").submit();
-            }
-            jQuery(function () {
-                jQuery(".submit button.primary").addClass("g-recaptcha").attr("data-sitekey", GrCKey).attr("data-callback", "onSubmit");
-            });
-        </script>';
+        echo 
+'<script src="' . $url . '"></script>
+<script>
+    const GrCKey = "' . $key . '" ;
+    function onSubmit() {
+        document.querySelector("form").submit();
+    }
+    jQuery(function () {
+        jQuery(".submit button.primary").addClass("g-recaptcha").attr("data-sitekey", GrCKey).attr("data-callback", "onSubmit");
+    });
+</script>';
     }
 
     public static function ArchiveScriptLoader(){
@@ -76,9 +77,12 @@ class GrCv3Protect_Plugin implements Typecho_Plugin_Interface {
         if (!in_array("comment",$config->Protect) || empty($config->key) || empty($config->secret)) {
             return;
         }
+        $key = $config->key;
         $url = Typecho_Common::url("recaptcha/api.js?render={$config->key}",self::$mirror[$config->jsMirror == 1 ? "recaptcha" : "google"]);
-        echo "<script src='{$url}'></script>
-        <style>.grecaptcha-badge{opacity: 0; pointer-events: none;}</style>";
+        echo 
+"<script src='{$url}'></script>
+<script>const GrKey = '{$key}';</script>
+<style>.grecaptcha-badge{opacity: 0; pointer-events: none;}</style>";
     }
 
     public static function OutputCode() {
@@ -90,23 +94,27 @@ class GrCv3Protect_Plugin implements Typecho_Plugin_Interface {
         if (!in_array("comment",$config->Protect) || empty($config->key) || empty($config->secret)) {
             return;
         }
-        $key = $config->key;
-        echo '<input type="hidden" name="g-recaptcha-response"></input>
-        <script>
-            const GrKey = "'. $key . '";
-            grecaptcha.ready(function() {
-                const callback = function(){
-                    grecaptcha.execute(GrKey, {action: "social"}).then(function(token) {
-                        document.querySelectorAll("input[name=\"g-recaptcha-response\"]").forEach(function(v){
-                            v.value = token;
-                        });
-                    });
-                };
-                setInterval(callback,90000);
-                callback();
+        $rid = rand(0,1000000);
+        echo 
+'<input type="hidden" name="g-recaptcha-response" id="g-recaptcha-'. $rid .'"></input>
+<script>
+    grecaptcha.ready(function() {
+        const rid = "' . $rid . '";
+        const callback = function(){
+            var input = document.getElementById("g-recaptcha-" + rid);
+            if(input == null){
+                clearInterval(interval);
+                return;
+            }
+            grecaptcha.execute(GrKey, {action: "social"}).then(function(token) {
+                input.value = token;
             });
-        </script>
-        <style>div.grecaptcha-badge{opacity: 1; pointer-events: all;}</style>';
+        };
+        var interval = setInterval(callback,90000);
+        callback();
+    });
+</script>
+<style>div.grecaptcha-badge{opacity: 1; pointer-events: all;}</style>';
     }
 
     public static function loginAction($name, $password, $temporarily = false, $expire = 0) {
