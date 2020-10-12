@@ -1,7 +1,8 @@
 ## Google reCAPTCHA v3 Login/Comment Protect
 
 ### 关于
-本插件能在登陆后台/评论时进行人机验证,基于`Google reCAPTCHA v3`,实现无交互的人机验证.
+本插件能在登陆后台/评论时进行人机验证,基于`Google reCAPTCHA v3`,实现无交互的人机验证.  
+完美兼容绝大部分Pjax换页/Ajax评论主题,无需额外修改.
 
 ### 使用方法
 1. 下载[本仓库](https://github.com/KawaiiZapic/Typecho-reCAPTCHA-v3/archive/master.zip)
