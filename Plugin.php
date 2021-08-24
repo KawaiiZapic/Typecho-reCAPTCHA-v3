@@ -6,7 +6,7 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
  *
  * @package GrCv3Protect
  * @author Zapic
- * @version 0.0.4
+ * @version 0.0.2
  * @link https://github.com/KawaiiZapic/Typecho-Login-reCAPTCHA-v3
  */
 
@@ -30,10 +30,11 @@ class GrCv3Protect_Plugin implements Typecho_Plugin_Interface {
     public static function config(Typecho_Widget_Helper_Form $form) {
         $key = new Typecho_Widget_Helper_Form_Element_Text('key', NULL, '', 'Site Key');
         $secret = new Typecho_Widget_Helper_Form_Element_Text('secret', NULL, '', 'Secret Key');
-        $Score = new Typecho_Widget_Helper_Form_Element_Checkbox('Protect', ['login' => "登录",'comment' => "评论"], "login", '对以下行为启用reCAPTCHA验证');
+        $Score = new Typecho_Widget_Helper_Form_Element_Checkbox('Protect', ['login' => "登录",'comment' => "评论"], ["login"], '对以下行为启用reCAPTCHA验证');
         $Protect = new Typecho_Widget_Helper_Form_Element_Text('score', NULL, '0.5', 'reCAPTCHA 验证分数阈值');
         $jsMirror = new Typecho_Widget_Helper_Form_Element_Radio('jsMirror', ['1' => "recaptcha.net(国内可用)", '0' => "Google.com"], '1', 'reCAPTCHA 资源加载地址');
         $serverMirror = new Typecho_Widget_Helper_Form_Element_Radio('serverMirror', ['1' => "recaptcha.net(国内可用)", '0' => "Google.com"], '1', 'reCAPTCHA 验证地址');
+        $forceAsync = new Typecho_Widget_Helper_Form_Element_Checkbox('forceAsync', ['login' => "登录",'comment' => "评 论"], [], '异步加载reCAPTCHA脚本');
         echo '<b>在<a href="https://www.google.com/recaptcha/admin">Google reCAPTCHA</a> 添加站点以获取 Site Key & Secret key</b><br><br>若启用评论验证,请在主题评论表单内添加相应代码:<pre>&lt;?php '.__CLASS__.'::OutputCode(); ?></pre>';
         $form->addInput($key);
         $form->addInput($secret);
@@ -41,7 +42,7 @@ class GrCv3Protect_Plugin implements Typecho_Plugin_Interface {
         $form->addInput($Protect);
         $form->addInput($jsMirror);
         $form->addInput($serverMirror);
-        
+        $form->addInput($forceAsync);
     }
 
     public static function LoginScriptLoader() {
@@ -50,13 +51,14 @@ class GrCv3Protect_Plugin implements Typecho_Plugin_Interface {
             return;
         }
         $config = Helper::options()->plugin('GrCv3Protect');
-        if (!in_array("login",$config->Protect) || empty($config->key) || empty($config->secret)) {
+        if (!is_array($config->Protect) || !in_array("login",$config->Protect) || empty($config->key) || empty($config->secret)) {
             return;
         }
         $url = Typecho_Common::url("recaptcha/api.js",self::$mirror[$config->jsMirror == 1 ? "recaptcha" : "google"]);
         $key = $config->key;
-        echo 
-'<script src="' . $url . '"></script>
+        $async = (is_array($config->forceAsync) && in_array("login",$config->forceAsync)) ? 'async="async"' : '' ;
+        echo
+'<script id="GrV3Script" src="' . $url . '"' . $async . '></script>
 <script>
     const GrCKey = "' . $key . '" ;
     function onSubmit() {
@@ -74,13 +76,14 @@ class GrCv3Protect_Plugin implements Typecho_Plugin_Interface {
             return;
         }
         $config = Helper::options()->plugin('GrCv3Protect');
-        if (!in_array("comment",$config->Protect) || empty($config->key) || empty($config->secret)) {
+        if (!is_array($config->Protect) || !in_array("comment",$config->Protect) || empty($config->key) || empty($config->secret)) {
             return;
         }
         $key = $config->key;
         $url = Typecho_Common::url("recaptcha/api.js?render={$config->key}",self::$mirror[$config->jsMirror == 1 ? "recaptcha" : "google"]);
-        echo 
-"<script src='{$url}'></script>
+        $async = (is_array($config->forceAsync) && in_array("comment",$config->forceAsync)) ? 'async="async"' : '' ;
+        echo
+"<script src='{$url}' {$async}></script>
 <script>const GrKey = '{$key}';</script>
 <style>.grecaptcha-badge{opacity: 0; pointer-events: none;}</style>";
     }
@@ -91,11 +94,11 @@ class GrCv3Protect_Plugin implements Typecho_Plugin_Interface {
             return;
         }
         $config = Helper::options()->plugin('GrCv3Protect');
-        if (!in_array("comment",$config->Protect) || empty($config->key) || empty($config->secret)) {
+        if (!is_array($config->Protect) || !in_array("comment",$config->Protect) || empty($config->key) || empty($config->secret)) {
             return;
         }
         $rid = rand(0,1000000);
-        echo 
+        echo
 '<input type="hidden" name="g-recaptcha-response" id="g-recaptcha-'. $rid .'"></input>
 <script>
     grecaptcha.ready(function() {
@@ -120,7 +123,7 @@ class GrCv3Protect_Plugin implements Typecho_Plugin_Interface {
     public static function loginAction($name, $password, $temporarily = false, $expire = 0) {
         $user = Typecho_Widget::widget('Widget_User');
         $config = Helper::options()->plugin('GrCv3Protect');
-        if (in_array("login",$config->Protect) && !empty($config->key) && !empty($config->secret)) {
+        if (is_array($config->Protect) && in_array("login",$config->Protect) && !empty($config->key) && !empty($config->secret)) {
             $res = $user->request->from('g-recaptcha-response');
             $url = self::$mirror[$config->serverMirror == 1 ? "recaptcha" : "google"];
             $score = floatval($config->score);
@@ -139,7 +142,7 @@ class GrCv3Protect_Plugin implements Typecho_Plugin_Interface {
             return $comments;
         }
         $config = Helper::options()->plugin('GrCv3Protect');
-        if(!in_array("comment",$config->Protect) || empty($config->key) || empty($config->secret)){
+        if(!is_array($config->Protect) || !in_array("comment",$config->Protect) || empty($config->key) || empty($config->secret)){
             return $comments;
         }
         $url = self::$mirror[$config->serverMirror == 1 ? "recaptcha" : "google"];
@@ -160,10 +163,11 @@ class GrCv3Protect_Plugin implements Typecho_Plugin_Interface {
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_TIMEOUT => 5,
             CURLOPT_POSTFIELDS => http_build_query(['secret' => $secret, 'response' => $res])
         ]);
         @$data = curl_exec($ch);
         @$data = @json_decode($data, true);
-        return ($data['success'] === true && $data['score'] > $score);
+        return (is_array($data) && $data['success'] === true && $data['score'] > $score);
     }
 }
