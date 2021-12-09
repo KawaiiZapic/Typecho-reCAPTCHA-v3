@@ -36,6 +36,8 @@ class GrCv3Protect_Plugin implements Typecho_Plugin_Interface {
         $serverMirror = new Typecho_Widget_Helper_Form_Element_Radio('serverMirror', ['1' => "recaptcha.net(国内可用)", '0' => "Google.com"], '1', 'reCAPTCHA 验证地址');
         $forceAsync = new Typecho_Widget_Helper_Form_Element_Checkbox('forceAsync', ['login' => "登录",'comment' => "评 论"], [], '异步加载reCAPTCHA脚本');
         echo '<b>在<a href="https://www.google.com/recaptcha/admin">Google reCAPTCHA</a> 添加站点以获取 Site Key & Secret key</b><br><br>若启用评论验证,请在主题评论表单内添加相应代码:<pre>&lt;?php '.__CLASS__.'::OutputCode(); ?></pre>';
+        $key->input->setAttribute("autocomplete", "off");
+        $secret->input->setAttribute("autocomplete", "off");
         $form->addInput($key);
         $form->addInput($secret);
         $form->addInput($Score);
