@@ -1,3 +1,6 @@
+插件设计的很糟糕, 容易导致Google认为网站正在遭受攻击导致所有验证都不被通过, 请不要使用了.  
+代码留作参考.
+
 ## Google reCAPTCHA v3 Login/Comment Protect
 
 ### 关于
